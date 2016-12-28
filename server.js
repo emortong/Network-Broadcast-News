@@ -1,23 +1,26 @@
 const net = require('net');
 const readline = require('readline');
+const bannedWords = require('./bannedWords.js');
 
-var storedSockets = []
+let storedSockets = [];
 
-var server = net.createServer(function connect(socket) {
+let server = net.createServer(function connect(socket) {
   socket.on('error', (err) => {
     throw err;
   })
 
   socket.on('data', function(data) {
-    var found = false;
+    let found = false;
     data = data.toString().trim();
 
     storedSockets.forEach((x) => {
       if(x.socket === socket && x.id !== undefined) {
-        if(data.toString().trim() === 'fuck') {
-          x.socket.write(`you've been kicked out\n`)
-          x.socket.end();
-        }
+        bannedWords.forEach((word) => {
+          if(data.toString().trim().toLowerCase() === word) {
+            x.socket.write(`you've been kicked out\n`)
+            x.socket.end();
+          }
+        })
         let message = `${x.id} says: ${data}\n`;
 
         storedSockets.forEach((i) => {
@@ -42,7 +45,7 @@ var server = net.createServer(function connect(socket) {
   })
 
   socket.on('end', function() {
-    for(var i = 0; i < storedSockets.length; i++) {
+    for(let i = 0; i < storedSockets.length; i++) {
       if(storedSockets[i].socket === socket) {
         let message = `user ${storedSockets[i].id} disconnected\n`;
         storedSockets.forEach((j) => {
@@ -71,7 +74,7 @@ server.listen(6969, () => {
 })
 
 function storeSocket(socket, id) {
-  var socketId = {
+  let socketId = {
     socket: socket,
     id: id
   }
