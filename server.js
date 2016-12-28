@@ -1,4 +1,8 @@
 const net = require('net');
+const readline = require('readline');
+
+// var id = 0;
+var storedSockets = []
 
 
 var server = net.createServer(function connect(socket) {
@@ -6,16 +10,27 @@ var server = net.createServer(function connect(socket) {
     throw err;
   })
 
-  socket.on('connect', function() {
-    console.log('connected');
-  })
-
   socket.on('data', function(data) {
-    console.log('you sent data!')
+    if(storedSockets.length === 0) {
+      storeSocket(socket, data);
+    }
+    storedSockets.forEach((x) => {
+      if(x.socket !== socket) {
+        storeSocket(socket, data);
+      } else if(x.socket === socket && x.id !== undefined) {
+          let message = `user ${x.id} says: ${data}`
+          process.stdout.write(message);
+        }
+    })
   })
 
   socket.on('end', function() {
-    console.log('socket disconnected')
+     storedSockets.forEach((x) => {
+      if(x.socket === socket) {
+        let message = `user ${x.id} disconnected`;
+        process.stdout.write(message);
+      }
+    })
   })
 
   server.getConnections(function(err, count) {
@@ -32,3 +47,12 @@ server.on('error', (err) => {
 server.listen(6969, () => {
   console.log('opened server on', server.address())
 })
+
+function storeSocket(socket, id) {
+  var socketId = {
+    socket: socket,
+    id: id
+  }
+  storedSockets.push(socketId);
+  // id++;
+}
