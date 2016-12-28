@@ -56,11 +56,7 @@ let server = net.createServer(function connect(socket) {
         } else {
           message = `${storedSockets[i].id} has been kicked out for not being nice\n`
         }
-        storedSockets.forEach((j) => {
-          if(j.socket !== socket) {
-            j.socket.write(message);
-          }
-        })
+        broadcast(message,socket);
         storedSockets.splice(i,1);
       }
     }
