@@ -1,7 +1,6 @@
 const net = require('net');
 const readline = require('readline');
 
-// var id = 0;
 var storedSockets = []
 
 
@@ -11,23 +10,23 @@ var server = net.createServer(function connect(socket) {
   })
 
   socket.on('data', function(data) {
-    if(storedSockets.length === 0) {
+    var found = false;
+    storedSockets.forEach((x) => {
+      if(x.socket === socket && x.id !== undefined) {
+          let message = `user ${x.id} says: ${data}`
+          process.stdout.write(message); // maybe x.socket.write(message) to broadcast
+           found = true;
+      }
+    })
+    if(!found) {
       storeSocket(socket, data);
     }
-    storedSockets.forEach((x) => {
-      if(x.socket !== socket) {
-        storeSocket(socket, data);
-      } else if(x.socket === socket && x.id !== undefined) {
-          let message = `user ${x.id} says: ${data}`
-          process.stdout.write(message);
-        }
-    })
   })
 
   socket.on('end', function() {
      storedSockets.forEach((x) => {
       if(x.socket === socket) {
-        let message = `user ${x.id} disconnected`;
+        let message = `user ${x.id} disconnected\n`;
         process.stdout.write(message);
       }
     })
@@ -54,5 +53,4 @@ function storeSocket(socket, id) {
     id: id
   }
   storedSockets.push(socketId);
-  // id++;
 }
