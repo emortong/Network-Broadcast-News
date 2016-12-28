@@ -7,7 +7,12 @@ var new_client = net.connect(6969, 'localhost', function connect() {
     new_client.write(data);
   })
 
+  new_client.on('data', function(data) {
+    process.stdout.write(data);
+  })
+
 });
+
 
 
 
