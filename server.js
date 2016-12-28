@@ -1,6 +1,11 @@
 const net = require('net');
 const readline = require('readline');
 const bannedWords = require('./bannedWords.js');
+let bannedWordsObj = {};
+
+bannedWords.forEach((word) => {
+  bannedWordsObj[word] = null;
+})
 
 let storedSockets = [];
 
@@ -15,12 +20,10 @@ let server = net.createServer(function connect(socket) {
 
     storedSockets.forEach((x) => {
       if(x.socket === socket && x.id !== undefined) {
-        bannedWords.forEach((word) => {
-          if(data.toString().trim().toLowerCase() === word) {
+          if(bannedWordsObj.hasOwnProperty(data.toString().trim().toLowerCase())) {
             x.socket.write(`you've been kicked out\n`)
             x.socket.end();
           }
-        })
         let message = `${x.id} says: ${data}\n`;
 
         storedSockets.forEach((i) => {
