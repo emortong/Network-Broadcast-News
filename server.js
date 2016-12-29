@@ -1,8 +1,10 @@
 const net = require('net');
 const readline = require('readline');
 const bannedWords = require('./bannedWords.js');
+const EVENT_DATA = 'data';
+const EVENT_ERROR = 'error';
+const EVENT_END = 'end';
 const PORT = 6969;
-const EVENT_DATA = 'data'
 let storedSockets = [];
 let bannedWordsObj = {};
 let kickedOut = false;
@@ -14,7 +16,7 @@ bannedWords.forEach((word) => {
 })
 
 let server = net.createServer(function connect(socket) {
-  socket.on('error', (err) => {
+  socket.on(EVENT_ERROR, (err) => {
     throw err;
   })
 
@@ -52,7 +54,7 @@ let server = net.createServer(function connect(socket) {
   })
 
   //disconnected or kicked out
-  socket.on('end', function() {
+  socket.on(EVENT_END, function() {
     let message;
     for(let i = 0; i < storedSockets.length; i++) {
       if(storedSockets[i].socket === socket) {
@@ -80,15 +82,13 @@ process.stdin.on(EVENT_DATA, function(data) {
   })
 })
 
-server.on('error', (err) => {
+server.on(EVENT_ERROR, (err) => {
   throw err;
 })
 
 server.listen(PORT, () => {
   console.log('opened server on', server.address())
 })
-
-
 
 function storeSocket(socket, id) {
   let socketId = {
