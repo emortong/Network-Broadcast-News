@@ -1,22 +1,25 @@
 const net = require('net');
 const readline = require('readline');
 const bannedWords = require('./bannedWords.js');
+const PORT = 6969;
+const EVENT_DATA = 'data'
+let storedSockets = [];
 let bannedWordsObj = {};
 let kickedOut = false;
+let found = false;
 
+//converts bannedWords array into object
 bannedWords.forEach((word) => {
   bannedWordsObj[word] = null;
 })
-
-let storedSockets = [];
 
 let server = net.createServer(function connect(socket) {
   socket.on('error', (err) => {
     throw err;
   })
 
-  socket.on('data', function(data) {
-    let found = false;
+  socket.on(EVENT_DATA, function(data) {
+    found = false;
     kickedOut = false;
     data = data.toString().trim();
     //identifying which client sent data
@@ -28,6 +31,7 @@ let server = net.createServer(function connect(socket) {
       }
     })
 
+    // verify language
     let wordsToVerify = data.toLowerCase().split(' ');
         wordsToVerify.forEach((toVerify) => {
           if(bannedWordsObj.hasOwnProperty(toVerify)) {
@@ -47,6 +51,7 @@ let server = net.createServer(function connect(socket) {
     }
   })
 
+  //disconnected or kicked out
   socket.on('end', function() {
     let message;
     for(let i = 0; i < storedSockets.length; i++) {
@@ -63,14 +68,13 @@ let server = net.createServer(function connect(socket) {
   })
 
   server.getConnections(function(err, count) {
-  console.log('Connections: ' + count)
-})
-
-
+    console.log('Connections: ' + count)
+  })
 });
+
 // admin broadcast message
-process.stdin.on('data', function(data) {
-  let message = `ADMIN says: ${data}`;
+process.stdin.on(EVENT_DATA, function(data) {
+  let message = `ADMIN says: ${data}\n`;
   storedSockets.forEach((x) => {
     x.socket.write(message);
   })
@@ -80,9 +84,11 @@ server.on('error', (err) => {
   throw err;
 })
 
-server.listen(6969, () => {
+server.listen(PORT, () => {
   console.log('opened server on', server.address())
 })
+
+
 
 function storeSocket(socket, id) {
   let socketId = {
